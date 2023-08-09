@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"log/slog"
+
 	slogtelegram "github.com/samber/slog-telegram"
-	"golang.org/x/exp/slog"
 )
 
 func main() {
