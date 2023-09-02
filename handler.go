@@ -54,6 +54,8 @@ func (o Option) NewTelegramHandler() slog.Handler {
 	}
 }
 
+var _ slog.Handler = (*TelegramHandler)(nil)
+
 type TelegramHandler struct {
 	option Option
 	client *tgbotapi.BotAPI
