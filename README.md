@@ -67,10 +67,20 @@ type Option struct {
 
 	// optional: customize Telegram message builder
 	Converter Converter
+
+	// optional: see slog.HandlerOptions
+	AddSource   bool
+	ReplaceAttr func(groups []string, a slog.Attr) slog.Attr
 }
 ```
 
 Attributes will be injected in message.
+
+Other global parameters:
+
+```go
+slogtelegram.SourceKey = "source"
+```
 
 ### Example
 

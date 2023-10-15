@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	slogcommon "github.com/samber/slog-common"
 )
 
 // curl -X POST \
@@ -25,6 +26,10 @@ type Option struct {
 
 	// optional: customize Telegram message builder
 	Converter Converter
+
+	// optional: see slog.HandlerOptions
+	AddSource   bool
+	ReplaceAttr func(groups []string, a slog.Attr) slog.Attr
 }
 
 func (o Option) NewTelegramHandler() slog.Handler {
@@ -73,7 +78,7 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 		converter = h.option.Converter
 	}
 
-	message := converter(h.attrs, &record)
+	message := converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
 	msg := tgbotapi.NewMessageToChannel(h.option.Username, message)
 
 	_, err := h.client.Send(msg)
@@ -89,7 +94,7 @@ func (h *TelegramHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &TelegramHandler{
 		option: h.option,
 		client: h.client,
-		attrs:  appendAttrsToGroup(h.groups, h.attrs, attrs),
+		attrs:  slogcommon.AppendAttrsToGroup(h.groups, h.attrs, attrs...),
 		groups: h.groups,
 	}
 }
