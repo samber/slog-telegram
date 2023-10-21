@@ -1,4 +1,4 @@
-module github.com/samber/slog-telegram
+module github.com/samber/slog-telegram/v2
 
 go 1.21
 

@@ -43,16 +43,16 @@ A [Telegram](https://telegram.org) Handler for [slog](https://pkg.go.dev/log/slo
 ## 🚀 Install
 
 ```sh
-go get github.com/samber/slog-telegram
+go get github.com/samber/slog-telegram/v2
 ```
 
 **Compatibility**: go >= 1.21
 
-No breaking changes will be made to exported APIs before v2.0.0.
+No breaking changes will be made to exported APIs before v3.0.0.
 
 ## 💡 Usage
 
-GoDoc: [https://pkg.go.dev/github.com/samber/slog-telegram](https://pkg.go.dev/github.com/samber/slog-telegram)
+GoDoc: [https://pkg.go.dev/github.com/samber/slog-telegram/v2](https://pkg.go.dev/github.com/samber/slog-telegram/v2)
 
 ### Handler options
 
@@ -87,7 +87,7 @@ slogtelegram.SourceKey = "source"
 
 ```go
 import (
-	slogtelegram "github.com/samber/slog-telegram"
+	slogtelegram "github.com/samber/slog-telegram/v2"
 	"log/slog"
 )
 
