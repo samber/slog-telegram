@@ -81,11 +81,9 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 	message := converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
 	msg := tgbotapi.NewMessageToChannel(h.option.Username, message)
 
-	_, err := h.client.Send(msg)
-	if err != nil {
-		fmt.Println("slog-telegram:", err.Error())
-		return err
-	}
+	go func() {
+		_, _ = h.client.Send(msg)
+	}()
 
 	return nil
 }
