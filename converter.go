@@ -5,6 +5,7 @@ import (
 
 	"log/slog"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	slogcommon "github.com/samber/slog-common"
 )
 
@@ -24,6 +25,8 @@ func DefaultConverter(addSource bool, replaceAttr func(groups []string, a slog.A
 	message += attrToTelegramMessage("", attrs)
 	return message
 }
+
+type MessageConfigurator func(messageConfig tgbotapi.MessageConfig, loggerAttr []slog.Attr) tgbotapi.MessageConfig
 
 func attrToTelegramMessage(base string, attrs []slog.Attr) string {
 	message := ""

@@ -25,7 +25,8 @@ type Option struct {
 	Username string
 
 	// optional: customize Telegram message builder
-	Converter Converter
+	Converter           Converter
+	MessageConfigurator MessageConfigurator
 
 	// optional: see slog.HandlerOptions
 	AddSource   bool
@@ -80,6 +81,9 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 
 	message := converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
 	msg := tgbotapi.NewMessageToChannel(h.option.Username, message)
+	if h.option.MessageConfigurator != nil {
+		msg = h.option.MessageConfigurator(msg, h.attrs)
+	}
 
 	go func() {
 		_, _ = h.client.Send(msg)
