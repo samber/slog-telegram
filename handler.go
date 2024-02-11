@@ -46,6 +46,10 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		panic("missing Telegram username")
 	}
 
+	if o.Converter == nil {
+		o.Converter = DefaultConverter
+	}
+
 	client, err := tgbotapi.NewBotAPI(o.Token)
 	if err != nil {
 		fmt.Println("slog-telegram:", err)
@@ -74,12 +78,7 @@ func (h *TelegramHandler) Enabled(_ context.Context, level slog.Level) bool {
 }
 
 func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error {
-	converter := DefaultConverter
-	if h.option.Converter != nil {
-		converter = h.option.Converter
-	}
-
-	message := converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
+	message := h.option.Converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
 	msg := tgbotapi.NewMessageToChannel(h.option.Username, message)
 	if h.option.MessageConfigurator != nil {
 		msg = h.option.MessageConfigurator(msg, h.attrs)
