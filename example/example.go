@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"log/slog"
 
@@ -14,7 +15,7 @@ func main() {
 	token := "5977160992:AAGcvh0gwuNQO0tFRy-hKnfvEQux0_CChrw"
 	username := "@samuelberthe"
 
-	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, Username: username, MessageConfigurator: Configurator}.NewTelegramHandler())
+	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: username, MessageConfigurator: Configurator}.NewTelegramHandler())
 	logger = logger.With("release", "v1.0.0")
 
 	logger.

@@ -3,17 +3,12 @@ package slogtelegram
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"log/slog"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	slogcommon "github.com/samber/slog-common"
 )
-
-// curl -X POST \
-//      -H 'Content-Type: application/json' \
-//      -d '{"chat_id": "<your-chat-id>", "text": "This is a test from curl", "disable_notification": true}' \
-//      https://api.telegram.org/bot<your-bot-token>/sendMessage
 
 type Option struct {
 	// log level (default: debug)
@@ -21,8 +16,8 @@ type Option struct {
 
 	// Telegram bot token
 	Token string
-	// Username of the channel in the form of `@username`
-	Username string
+	// ChatId is the id of the chat
+	ChatId string
 
 	// optional: customize Telegram message builder
 	Converter           Converter
@@ -31,6 +26,9 @@ type Option struct {
 	// optional: see slog.HandlerOptions
 	AddSource   bool
 	ReplaceAttr func(groups []string, a slog.Attr) slog.Attr
+
+	// optional: customize HTTP client
+	HttpClient *http.Client
 }
 
 func (o Option) NewTelegramHandler() slog.Handler {
@@ -42,7 +40,7 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		panic("missing Telegram token")
 	}
 
-	if o.Username == "" {
+	if o.ChatId == "" {
 		panic("missing Telegram username")
 	}
 
@@ -50,7 +48,11 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		o.Converter = DefaultConverter
 	}
 
-	client, err := tgbotapi.NewBotAPI(o.Token)
+	if o.HttpClient == nil {
+		o.HttpClient = http.DefaultClient
+	}
+
+	err := o.checkInit()
 	if err != nil {
 		fmt.Println("slog-telegram:", err)
 		return nil
@@ -58,7 +60,6 @@ func (o Option) NewTelegramHandler() slog.Handler {
 
 	return &TelegramHandler{
 		option: o,
-		client: client,
 		attrs:  []slog.Attr{},
 		groups: []string{},
 	}
@@ -68,9 +69,10 @@ var _ slog.Handler = (*TelegramHandler)(nil)
 
 type TelegramHandler struct {
 	option Option
-	client *tgbotapi.BotAPI
 	attrs  []slog.Attr
 	groups []string
+
+	client *http.Client
 }
 
 func (h *TelegramHandler) Enabled(_ context.Context, level slog.Level) bool {
@@ -78,14 +80,15 @@ func (h *TelegramHandler) Enabled(_ context.Context, level slog.Level) bool {
 }
 
 func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error {
-	message := h.option.Converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
-	msg := tgbotapi.NewMessageToChannel(h.option.Username, message)
-	if h.option.MessageConfigurator != nil {
-		msg = h.option.MessageConfigurator(msg, h.attrs)
-	}
+	msg := h.option.Converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
 
 	go func() {
-		_, _ = h.client.Send(msg)
+		// TODO: handle error here. Probably log it to stderr?
+		err := h.option.sendMessage(msg)
+
+		if err != nil {
+			fmt.Println("slog-telegram:", err)
+		}
 	}()
 
 	return nil
@@ -94,7 +97,6 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 func (h *TelegramHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &TelegramHandler{
 		option: h.option,
-		client: h.client,
 		attrs:  slogcommon.AppendAttrsToGroup(h.groups, h.attrs, attrs...),
 		groups: h.groups,
 	}
@@ -103,7 +105,6 @@ func (h *TelegramHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 func (h *TelegramHandler) WithGroup(name string) slog.Handler {
 	return &TelegramHandler{
 		option: h.option,
-		client: h.client,
 		attrs:  h.attrs,
 		groups: append(h.groups, name),
 	}
