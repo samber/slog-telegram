@@ -27,7 +27,7 @@ func DefaultConverter(addSource bool, replaceAttr func(groups []string, a slog.A
 	attrs = slogcommon.ReplaceAttrs(replaceAttr, []string{}, attrs...)
 
 	// handler formatter
-	message := fmt.Sprintf("%s\n------------\n\n", record.Message)
+	message := fmt.Sprintf("#%s %s\n------------\n\n", record.Level.String(), record.Message)
 	message += attrToTelegramMessage("", attrs)
 	return message
 }

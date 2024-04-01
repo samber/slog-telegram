@@ -29,7 +29,7 @@ func main() {
 		).
 		With("environment", "dev").
 		With("error", fmt.Errorf("an error")).
-		Error("Hello <pre><code>slog</code></pre>")
+		Error("Hello <b><i>slog</i></b>")
 
 	// as its async, wait for the message to be sent
 	time.Sleep(5 * time.Second)
