@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -11,11 +12,14 @@ import (
 	slogtelegram "github.com/samber/slog-telegram/v2"
 )
 
-func main() {
-	token := "5977160992:AAGcvh0gwuNQO0tFRy-hKnfvEQux0_CChrw"
-	username := "@samuelberthe"
+// run with
+// TOKEN=<your token> CHAT_ID=<your chat id> go run example.go
 
-	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: username, MessageConfigurator: Configurator}.NewTelegramHandler())
+func main() {
+	token := os.Getenv("TOKEN")
+	chatId := os.Getenv("CHAT_ID")
+
+	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: chatId, MessageConfigurator: Configurator}.NewTelegramHandler())
 	logger = logger.With("release", "v1.0.0")
 
 	logger.
@@ -28,6 +32,9 @@ func main() {
 		With("environment", "dev").
 		With("error", fmt.Errorf("an error")).
 		Error("A message")
+
+	// as its async, wait for the message to be sent
+	time.Sleep(5 * time.Second)
 }
 
 // Configurator Make the message support markdown
