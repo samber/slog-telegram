@@ -20,8 +20,8 @@ type Option struct {
 	ChatId string
 
 	// optional: customize Telegram message builder
-	Converter           Converter
-	MessageConfigurator MessageConfigurator
+	ParseMode ParseMode
+	Converter Converter
 
 	// optional: see slog.HandlerOptions
 	AddSource   bool
@@ -48,14 +48,11 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		o.Converter = DefaultConverter
 	}
 
-	if o.HttpClient == nil {
-		o.HttpClient = http.DefaultClient
-	}
-
 	err := o.checkInit()
 	if err != nil {
-		fmt.Println("slog-telegram:", err)
-		return nil
+		// panic here or not?
+		errMsg := fmt.Sprintf("slog-telegram: failed to intialize: %s", o.redactSensitiveInfo(err.Error()))
+		fmt.Println(errMsg)
 	}
 
 	return &TelegramHandler{
@@ -71,8 +68,6 @@ type TelegramHandler struct {
 	option Option
 	attrs  []slog.Attr
 	groups []string
-
-	client *http.Client
 }
 
 func (h *TelegramHandler) Enabled(_ context.Context, level slog.Level) bool {
@@ -87,7 +82,8 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 		err := h.option.sendMessage(msg)
 
 		if err != nil {
-			fmt.Println("slog-telegram:", err)
+			errMsg := fmt.Sprintf("slog-telegram: failed to send log: %s", h.option.redactSensitiveInfo(err.Error()))
+			fmt.Println(errMsg)
 		}
 	}()
 

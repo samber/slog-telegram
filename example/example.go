@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-
 	"log/slog"
 
 	slogtelegram "github.com/samber/slog-telegram/v2"
@@ -19,7 +17,7 @@ func main() {
 	token := os.Getenv("TOKEN")
 	chatId := os.Getenv("CHAT_ID")
 
-	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: chatId, MessageConfigurator: Configurator}.NewTelegramHandler())
+	logger := slog.New(slogtelegram.Option{Level: slog.LevelDebug, Token: token, ChatId: chatId, ParseMode: slogtelegram.ParseModeHTML}.NewTelegramHandler())
 	logger = logger.With("release", "v1.0.0")
 
 	logger.
@@ -31,14 +29,8 @@ func main() {
 		).
 		With("environment", "dev").
 		With("error", fmt.Errorf("an error")).
-		Error("A message")
+		Error("Hello <pre><code>slog</code></pre>")
 
 	// as its async, wait for the message to be sent
 	time.Sleep(5 * time.Second)
-}
-
-// Configurator Make the message support markdown
-func Configurator(config tgbotapi.MessageConfig, attr []slog.Attr) tgbotapi.MessageConfig {
-	config.ParseMode = tgbotapi.ModeMarkdown
-	return config
 }
