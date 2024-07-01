@@ -84,6 +84,7 @@ func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error 
 		msg = h.option.MessageConfigurator(msg, h.attrs)
 	}
 
+	// non-blocking
 	go func() {
 		_, _ = h.client.Send(msg)
 	}()
