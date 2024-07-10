@@ -102,6 +102,11 @@ func (h *TelegramHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 func (h *TelegramHandler) WithGroup(name string) slog.Handler {
+	// https://cs.opensource.google/go/x/exp/+/46b07846:slog/handler.go;l=247
+	if name == "" {
+		return h
+	}
+
 	return &TelegramHandler{
 		option: h.option,
 		client: h.client,
