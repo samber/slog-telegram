@@ -77,6 +77,7 @@ func (h *TelegramHandler) Enabled(_ context.Context, level slog.Level) bool {
 func (h *TelegramHandler) Handle(ctx context.Context, record slog.Record) error {
 	msg := h.option.Converter(h.option.AddSource, h.option.ReplaceAttr, h.attrs, h.groups, &record)
 
+	// non-blocking
 	go func() {
 		// TODO: handle error here. Probably log it to stderr?
 		err := h.option.sendMessage(msg)
@@ -99,6 +100,11 @@ func (h *TelegramHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 func (h *TelegramHandler) WithGroup(name string) slog.Handler {
+	// https://cs.opensource.google/go/x/exp/+/46b07846:slog/handler.go;l=247
+	if name == "" {
+		return h
+	}
+
 	return &TelegramHandler{
 		option: h.option,
 		attrs:  h.attrs,

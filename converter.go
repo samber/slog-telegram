@@ -25,6 +25,7 @@ func DefaultConverter(addSource bool, replaceAttr func(groups []string, a slog.A
 
 	// developer formatters
 	attrs = slogcommon.ReplaceAttrs(replaceAttr, []string{}, attrs...)
+	attrs = slogcommon.RemoveEmptyAttrs(attrs)
 
 	// handler formatter
 	message := fmt.Sprintf("#%s %s\n------------\n\n", record.Level.String(), record.Message)
