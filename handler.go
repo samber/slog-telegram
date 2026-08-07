@@ -3,6 +3,8 @@ package slogtelegram
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"log/slog"
 
@@ -23,6 +25,11 @@ type Option struct {
 	Token string
 	// Username of the channel in the form of `@username`
 	Username string
+
+	// Custom HTTP client
+	HTTPClient tgbotapi.HTTPClient
+	// Proxy endpoint
+	APIEndpoint string
 
 	// optional: customize Telegram message builder
 	Converter           Converter
@@ -50,7 +57,16 @@ func (o Option) NewTelegramHandler() slog.Handler {
 		o.Converter = DefaultConverter
 	}
 
-	client, err := tgbotapi.NewBotAPI(o.Token)
+	if o.HTTPClient == nil {
+		o.HTTPClient = &http.Client{}
+	}
+
+	apiEndpoint := tgbotapi.APIEndpoint
+	if o.APIEndpoint != "" {
+		apiEndpoint = fmt.Sprintf("%s/bot%%s/%%s", strings.TrimSuffix(o.APIEndpoint, "/"))
+	}
+
+	client, err := tgbotapi.NewBotAPIWithClient(o.Token, apiEndpoint, o.HTTPClient)
 	if err != nil {
 		fmt.Println("slog-telegram:", err)
 		return nil
